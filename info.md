@@ -27,6 +27,7 @@ This repository contains the following custom cards:
 - **prism-3dprinter** - 3D printer card with glassmorphism design
 - **prism-bambu** - Bambu Lab 3D printer card with AMS support, real-time 3D model build-up, transparent filament detection, and push notifications
 - **prism-creality** - Creality 3D printer card (K1, K1 Max, K1 SE) - supports Moonraker/Klipper
+- **prism-anycubic** - Anycubic Cloud 3D printer card (Kobra X, Kobra 3, Kobra 2, ...) with ACE multi-color box support
 - **prism-energy** - Energy flow card for solar, battery, grid and EV
 - **prism-energy-horizontal** - Horizontal energy flow card
 - **prism-sidebar** - Sidebar card with camera, clock, calendar and weather

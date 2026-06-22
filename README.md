@@ -79,7 +79,7 @@ Prism is optimized for wall tablets and smartphones and is ideal as a central sm
   Layout seamlessly adapts to different devices (tablet on the wall, smartphone in hand).
 
 - **🖨️ Advanced 3D Printer Support**  
-  Full-featured cards for Bambu Lab, Creality, and generic Klipper/Moonraker printers with:
+  Full-featured cards for Bambu Lab, Creality, Anycubic, and generic Klipper/Moonraker printers with:
   - AMS/CFS filament system visualization
   - 3D model preview (cover image)
   - Multi-printer camera view
@@ -229,6 +229,9 @@ Prism Dashboard includes **29+ custom cards** (including dark and light theme va
 - **prism-creality** – Creality printer with **CFS support** (same design as AMS), cover image, multi-printer view
   - Supports: K1, K1C, K1 Max, K1 SE, K2, K2 Plus, Ender 3 V3 series
   - Integrations: [ha_creality_ws](https://github.com/3dg1luk43/ha_creality_ws) (recommended) or Moonraker
+- **prism-anycubic** – Anycubic Cloud printer with **ACE support** (multi-color box, same design as AMS), cover image, multi-printer view
+  - Supports: Kobra X, Kobra 3 / 3 Max / 3 Combo, Kobra 2 series, Kobra S1, and other Anycubic Cloud printers
+  - Integration: [hass-anycubic_cloud](https://github.com/WaresWichall/hass-anycubic_cloud)
 
 ### Dashboard Layout
 - **prism-sidebar** / **prism-sidebar-light** – Full sidebar with camera, weather, calendar

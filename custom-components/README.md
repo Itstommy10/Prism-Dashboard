@@ -819,6 +819,75 @@ Replace `2` with your Spoolman spool ID.
 
 ---
 
+### prism-anycubic
+
+An Anycubic Cloud 3D printer card with **ACE (Anycubic Color Engine / multi-color box)** support, glassmorphism design, and full feature parity with prism-bambu/prism-creality. Supports Kobra X, Kobra 3 / 3 Max / 3 Combo, Kobra 2 series, Kobra S1 and other Anycubic Cloud printers.
+
+**Supported Integration:**
+- **[hass-anycubic_cloud](https://github.com/WaresWichall/hass-anycubic_cloud)** - Anycubic Cloud integration (provides sensors, binary_sensors, the ACE multi-color box, preview image and print-control buttons)
+
+**Usage:**
+
+**Basic Configuration (Visual Editor):**
+```yaml
+- type: custom:prism-anycubic
+  printer: <device_id>  # Anycubic Cloud printer device
+  name: Anycubic Kobra X
+```
+
+**Advanced Configuration:**
+```yaml
+- type: custom:prism-anycubic
+  printer: <device_id>
+  name: Anycubic Kobra X
+  camera_entity: camera.kobra_x_camera   # optional - not provided by the integration
+  light_switch: switch.kobra_x_plug      # optional - any smart plug / LED switch
+  show_cover_image: true
+  show_cfs: true        # ACE multi-color box slots
+  show_cfs_info: true   # ACE temperature
+```
+
+**Features:**
+- ✅ **ACE Support**: Multi-color box filament slots (same design as Bambu AMS / Creality CFS)
+- ✅ **ACE Temperature**: Box temperature monitoring
+- ✅ **Cover Image**: 3D model preview (`image.<printer>_job_preview`) with real-time build-up effect
+- ✅ **Multi-Printer Camera View**: Show up to 4 printers simultaneously
+- ✅ **Auto-Entity Detection**: Entities matched by translation key (collision-free)
+- ✅ **Temperature Overlays**: Nozzle & Bed with targets
+- ✅ **Progress Bar**: Visual progress with percentage
+- ✅ **Layer Information**: Current / Total layers
+- ✅ **Controls**: Pause/Resume and Cancel (Stop) buttons
+- ✅ **Power Switch**: Optional power button
+
+**ACE (Anycubic Color Engine):**
+
+The card reads the ACE multi-color box from the `ace_spools` sensor, whose `spool_info` attribute is a list of slots:
+
+| Field | Description |
+|-------|-------------|
+| `material_type` | Filament type (e.g. `PLA`) |
+| `color` | Filament color as an RGB array `[r, g, b]` |
+| `status` / `spool_loaded` | Slot status; the loaded slot is highlighted as active |
+
+> Note: Anycubic Cloud does not expose a per-spool remaining percentage, a chamber temperature, a light entity or a camera feed. Configure your own `camera_entity` / `light_switch` if you have them.
+
+**Mapped entities (translation keys):**
+
+| Translation key | Used for |
+|-----------------|----------|
+| `job_progress` | Print progress % |
+| `job_state` / `job_in_progress` / `job_paused` | Print state |
+| `job_time_remaining` | Time remaining (minutes) |
+| `job_current_layer` / `job_total_layers` | Layer info |
+| `curr_nozzle_temp` / `target_nozzle_temp` | Nozzle temperature |
+| `curr_hotbed_temp` / `target_hotbed_temp` | Bed temperature |
+| `fan_speed_pct` | Fan speed |
+| `job_image_url` | Cover/preview image |
+| `ace_spools` / `ace_current_temperature` | ACE slots & temperature |
+| `pause_print` / `resume_print` / `cancel_print` | Controls |
+
+---
+
 ### prism-energy
 
 An energy flow card with glassmorphism design for visualizing solar generation, grid import/export, battery storage, home consumption, and EV charging. Optimized for the [OpenEMS/Fenecon Integration](https://github.com/Lamarqe/ha_openems).
