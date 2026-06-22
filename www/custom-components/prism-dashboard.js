@@ -49068,6 +49068,26 @@ class PrismAnycubicCard extends HTMLElement {
           title: 'Display Options',
           schema: [
             {
+              name: 'layout_mode',
+              label: 'Layout (Auto = horizontal when wide, e.g. 24 columns)',
+              default: 'auto',
+              selector: {
+                select: {
+                  options: [
+                    { value: 'auto', label: 'Auto (horizontal when wide)' },
+                    { value: 'wide', label: 'Wide (always horizontal)' },
+                    { value: 'vertical', label: 'Vertical (always)' }
+                  ]
+                }
+              }
+            },
+            {
+              name: 'column_max_width',
+              label: 'Expand Sections column width (px) — needed for wide layout in Sections view (0 = leave HA default ~500px)',
+              default: 0,
+              selector: { number: { min: 0, max: 2000, step: 10, mode: 'box', unit_of_measurement: 'px' } }
+            },
+            {
               name: 'show_model_fan',
               label: 'Show Model/Part Fan',
               default: true,
@@ -50080,6 +50100,9 @@ class PrismAnycubicCard extends HTMLElement {
       this.hasRendered = true;
       this.setupListeners();
     }
+    // Section ancestor is available once attached — (re)apply column width.
+    this._columnWidthRetried = false;
+    this._applyColumnWidth();
   }
 
   disconnectedCallback() {
@@ -50094,6 +50117,14 @@ class PrismAnycubicCard extends HTMLElement {
     }
     // Close camera popup if open
     this.closeCameraPopup();
+    // Cleanup layout observer
+    this._disconnectLayoutObserver();
+    // Restore the section column width override we set, if any.
+    if (this._didSetColumnWidth) {
+      const section = this._findContainingSection();
+      if (section) section.style.removeProperty('--ha-view-sections-column-max-width');
+      this._didSetColumnWidth = false;
+    }
   }
 
   setupListeners() {
@@ -53499,6 +53530,7 @@ class PrismAnycubicCard extends HTMLElement {
       <style>
         :host {
           display: block;
+          width: 100%;
           font-family: system-ui, -apple-system, sans-serif;
         }
         .card {
@@ -55053,10 +55085,53 @@ class PrismAnycubicCard extends HTMLElement {
             --mdc-icon-size: 48px;
             opacity: 0.3;
         }
-        
+
+        /* ============================================================
+           WIDE / HORIZONTAL LAYOUT (auto via container query)
+           When the card is given enough horizontal space (e.g. 24
+           grid columns) it switches from a tall single column to a
+           landscape layout: main visual on the left, info stacked on
+           the right, CFS/Spoolman full width on top. Occupies far less
+           vertical space and spreads the elements horizontally.
+           The .wide class is toggled by JS (ResizeObserver) when the
+           card is wide enough in 'auto' mode, or forced on/off by the
+           layout_mode config option. Using a class (not a container
+           query) means it also works in the card editor preview.
+           ============================================================ */
+        .card.wide {
+            display: grid;
+            min-height: 0;
+            column-gap: 24px;
+            row-gap: 16px;
+            grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+            grid-template-areas:
+                "visual   header"
+                "visual   cfs"
+                "visual   cfsinfo"
+                "visual   spool"
+                "visual   stats"
+                "visual   progress"
+                "visual   jobinfo"
+                "visual   controls";
+            align-items: start;
+        }
+        /* Every in-flow child must be assigned an area so nothing
+           gets auto-placed and breaks the explicit layout.
+           .noise (absolute) and .filament-popup-overlay (fixed) are
+           out of flow and ignore grid placement. */
+        .card.wide > .header { grid-area: header; margin-bottom: 0; }
+        .card.wide > .cfs-grid { grid-area: cfs; margin-bottom: 0; }
+        .card.wide > .cfs-info-bar { grid-area: cfsinfo; margin-bottom: 0; }
+        .card.wide > .spoolman-grid-centered { grid-area: spool; margin-bottom: 0; }
+        .card.wide > .main-visual { grid-area: visual; margin-bottom: 0; height: 100%; }
+        .card.wide > .stats-row { grid-area: stats; margin-bottom: 0; }
+        .card.wide > .progress-bar-container { grid-area: progress; }
+        .card.wide > .job-info { grid-area: jobinfo; margin-bottom: 0; }
+        .card.wide > .controls { grid-area: controls; }
+
       </style>
-      
-      <div class="card">
+
+      <div class="card ${(this.config?.layout_mode || 'auto') === 'wide' ? 'wide' : ''}">
         <div class="noise"></div>
         
         <div class="header">
@@ -55400,6 +55475,88 @@ class PrismAnycubicCard extends HTMLElement {
     `;
 
     this.setupListeners();
+    this._applyLayoutMode();
+    this._applyColumnWidth();
+  }
+
+  // Walk up the DOM (crossing shadow boundaries) to find the containing
+  // hui-section element of the current dashboard view.
+  _findContainingSection() {
+    let el = this;
+    for (let i = 0; i < 50 && el; i++) {
+      const root = el.getRootNode();
+      el = el.parentElement || (root instanceof ShadowRoot ? root.host : null);
+      if (el && el.localName === 'hui-section') return el;
+    }
+    return null;
+  }
+
+  // In HA "Sections" view each column is capped by
+  // --ha-view-sections-column-max-width (default 500px), which prevents
+  // the card from ever getting wide enough for the horizontal layout.
+  // Setting that CSS var directly on the containing hui-section raises the
+  // cap using HA's own mechanism (scoped to this column only).
+  _applyColumnWidth() {
+    const w = parseInt(this.config?.column_max_width) || 0;
+    const section = this._findContainingSection();
+    if (!section) {
+      // Section may not be attached yet on first render — retry once.
+      if (w > 0 && !this._columnWidthRetried) {
+        this._columnWidthRetried = true;
+        requestAnimationFrame(() => this._applyColumnWidth());
+      }
+      return;
+    }
+    if (w > 0) {
+      section.style.setProperty('--ha-view-sections-column-max-width', w + 'px');
+      this._didSetColumnWidth = true;
+    } else if (this._didSetColumnWidth) {
+      section.style.removeProperty('--ha-view-sections-column-max-width');
+      this._didSetColumnWidth = false;
+    }
+  }
+
+  // Decide whether the card should use the wide/horizontal layout.
+  // 'wide' -> always; 'vertical' -> never; 'auto' -> based on actual
+  // rendered width via ResizeObserver (>= 720px). A class is used (not a
+  // CSS container query) so it also works inside the card editor preview.
+  _applyLayoutMode() {
+    const card = this.shadowRoot?.querySelector('.card');
+    if (!card) return;
+    const mode = this.config?.layout_mode || 'auto';
+
+    if (mode === 'wide') {
+      card.classList.add('wide');
+      this._disconnectLayoutObserver();
+      return;
+    }
+    if (mode === 'vertical') {
+      card.classList.remove('wide');
+      this._disconnectLayoutObserver();
+      return;
+    }
+
+    // auto
+    const width = this.clientWidth || card.clientWidth || 0;
+    card.classList.toggle('wide', width >= 720);
+
+    if (!this._layoutObserver && typeof ResizeObserver !== 'undefined') {
+      this._layoutObserver = new ResizeObserver((entries) => {
+        const c = this.shadowRoot?.querySelector('.card');
+        if (!c) return;
+        for (const entry of entries) {
+          c.classList.toggle('wide', entry.contentRect.width >= 720);
+        }
+      });
+      this._layoutObserver.observe(this);
+    }
+  }
+
+  _disconnectLayoutObserver() {
+    if (this._layoutObserver) {
+      this._layoutObserver.disconnect();
+      this._layoutObserver = null;
+    }
   }
 
   getCardSize() {
