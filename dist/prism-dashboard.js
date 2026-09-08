@@ -2,8 +2,8 @@
  * Prism Dashboard - Custom Cards Collection
  * https://github.com/BangerTech/Prism-Dashboard
  * 
- * Version: 1.11.0
- * Build Date: 2026-09-08T07:25:25.048Z
+ * Version: 1.9.3
+ * Build Date: 2026-09-08T07:30:41.506Z
  * 
  * This file contains all Prism custom cards bundled together.
  * Just add this single file as a resource in Lovelace:
@@ -11,7 +11,7 @@
  */
 
 console.info(
-  '%c PRISM-DASHBOARD %c v1.11.0 ',
+  '%c PRISM-DASHBOARD %c v1.9.3 ',
   'color: white; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); font-weight: bold; padding: 4px 8px; border-radius: 4px 0 0 4px;',
   'color: #667eea; background: #e8e8e8; font-weight: bold; padding: 4px 8px; border-radius: 0 4px 4px 0;'
 );
