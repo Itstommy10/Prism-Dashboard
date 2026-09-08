@@ -8,7 +8,7 @@
  * - Weather effects (rain, snow, fog, sun, moon, stars)
  * - Day/Night transitions with house dimming
  * 
- * @version 1.2.3
+ * @version 1.3.0
  * @author BangerTech
  */
 
@@ -31,6 +31,14 @@ class PrismEnergyHorizontalCard extends HTMLElement {
       home_consumption: "",
       ev_power: "",
       autarky: "",
+      // Customizable pill labels (optional - empty = dynamic status)
+      solar_label: "",
+      grid_label: "",
+      home_label: "",
+      battery_label: "",
+      ev_label: "",
+      // Decimal places for kW display
+      decimals: 1,
       image: "/local/community/Prism-Dashboard/images/prism-energy-home.png",
       max_solar_power: 10000,
       max_grid_power: 10000,
@@ -71,6 +79,7 @@ class PrismEnergyHorizontalCard extends HTMLElement {
       custom_pill_1_label: "",
       custom_pill_1_color: [34, 211, 238],
       custom_pill_1_show_label: true,
+      custom_pill_1_is_consumer: false,
       custom_pill_1_top: 85,
       custom_pill_1_left: 35,
       custom_pill_1_scale: 1.0,
@@ -79,6 +88,7 @@ class PrismEnergyHorizontalCard extends HTMLElement {
       custom_pill_2_label: "",
       custom_pill_2_color: [96, 165, 250],
       custom_pill_2_show_label: true,
+      custom_pill_2_is_consumer: false,
       custom_pill_2_top: 85,
       custom_pill_2_left: 50,
       custom_pill_2_scale: 1.0,
@@ -87,6 +97,7 @@ class PrismEnergyHorizontalCard extends HTMLElement {
       custom_pill_3_label: "",
       custom_pill_3_color: [74, 222, 128],
       custom_pill_3_show_label: true,
+      custom_pill_3_is_consumer: false,
       custom_pill_3_top: 85,
       custom_pill_3_left: 65,
       custom_pill_3_scale: 1.0
@@ -162,6 +173,98 @@ class PrismEnergyHorizontalCard extends HTMLElement {
         {
           type: "expandable",
           name: "",
+          title: "🏷️ Labels & Tap Actions",
+          schema: [
+            {
+              type: "expandable",
+              name: "",
+              title: "Solar",
+              schema: [
+                {
+                  name: "solar_label",
+                  label: "Custom label (empty = dynamic status)",
+                  selector: { text: {} }
+                },
+                {
+                  name: "solar_tap_action",
+                  label: "Tap action",
+                  selector: { ui_action: {} }
+                }
+              ]
+            },
+            {
+              type: "expandable",
+              name: "",
+              title: "Grid",
+              schema: [
+                {
+                  name: "grid_label",
+                  label: "Custom label (empty = dynamic status)",
+                  selector: { text: {} }
+                },
+                {
+                  name: "grid_tap_action",
+                  label: "Tap action",
+                  selector: { ui_action: {} }
+                }
+              ]
+            },
+            {
+              type: "expandable",
+              name: "",
+              title: "Home",
+              schema: [
+                {
+                  name: "home_label",
+                  label: "Custom label (empty = dynamic status)",
+                  selector: { text: {} }
+                },
+                {
+                  name: "home_tap_action",
+                  label: "Tap action",
+                  selector: { ui_action: {} }
+                }
+              ]
+            },
+            {
+              type: "expandable",
+              name: "",
+              title: "Battery",
+              schema: [
+                {
+                  name: "battery_label",
+                  label: "Custom label (empty = dynamic status)",
+                  selector: { text: {} }
+                },
+                {
+                  name: "battery_tap_action",
+                  label: "Tap action",
+                  selector: { ui_action: {} }
+                }
+              ]
+            },
+            {
+              type: "expandable",
+              name: "",
+              title: "EV",
+              schema: [
+                {
+                  name: "ev_label",
+                  label: "Custom label (e.g. Wallbox)",
+                  selector: { text: {} }
+                },
+                {
+                  name: "ev_tap_action",
+                  label: "Tap action",
+                  selector: { ui_action: {} }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          type: "expandable",
+          name: "",
           title: "🌤️ Weather & Day/Night Animation",
           schema: [
             {
@@ -200,6 +303,12 @@ class PrismEnergyHorizontalCard extends HTMLElement {
               name: "max_consumption",
               label: "Max Consumption (Watts)",
               selector: { number: { min: 1000, max: 100000, step: 100, mode: "box", unit_of_measurement: "W" } }
+            },
+            {
+              name: "decimals",
+              label: "Decimal places for kW values (0-3)",
+              default: 1,
+              selector: { number: { min: 0, max: 3, step: 1, mode: "box" } }
             }
           ]
         },
@@ -398,6 +507,16 @@ class PrismEnergyHorizontalCard extends HTMLElement {
                   selector: { boolean: {} }
                 },
                 {
+                  name: "custom_pill_1_is_consumer",
+                  label: "Treat as consumer (flow animation + consumption total)",
+                  selector: { boolean: {} }
+                },
+                {
+                  name: "custom_pill_1_tap_action",
+                  label: "Tap action",
+                  selector: { ui_action: {} }
+                },
+                {
                   type: "grid",
                   name: "",
                   schema: [
@@ -449,6 +568,16 @@ class PrismEnergyHorizontalCard extends HTMLElement {
                   name: "custom_pill_2_show_label",
                   label: "Show label",
                   selector: { boolean: {} }
+                },
+                {
+                  name: "custom_pill_2_is_consumer",
+                  label: "Treat as consumer (flow animation + consumption total)",
+                  selector: { boolean: {} }
+                },
+                {
+                  name: "custom_pill_2_tap_action",
+                  label: "Tap action",
+                  selector: { ui_action: {} }
                 },
                 {
                   type: "grid",
@@ -504,6 +633,16 @@ class PrismEnergyHorizontalCard extends HTMLElement {
                   selector: { boolean: {} }
                 },
                 {
+                  name: "custom_pill_3_is_consumer",
+                  label: "Treat as consumer (flow animation + consumption total)",
+                  selector: { boolean: {} }
+                },
+                {
+                  name: "custom_pill_3_tap_action",
+                  label: "Tap action",
+                  selector: { ui_action: {} }
+                },
+                {
                   type: "grid",
                   name: "",
                   schema: [
@@ -542,6 +681,20 @@ class PrismEnergyHorizontalCard extends HTMLElement {
       home_consumption: config.home_consumption || "",
       ev_power: config.ev_power || "",
       autarky: config.autarky || "",
+      // Customizable pill labels
+      solar_label: config.solar_label || "",
+      grid_label: config.grid_label || "",
+      home_label: config.home_label || "",
+      battery_label: config.battery_label || "",
+      ev_label: config.ev_label || "",
+      // Decimal places for kW display
+      decimals: config.decimals ?? 1,
+      // Tap actions (undefined = default more-info)
+      solar_tap_action: config.solar_tap_action,
+      grid_tap_action: config.grid_tap_action,
+      home_tap_action: config.home_tap_action,
+      battery_tap_action: config.battery_tap_action,
+      ev_tap_action: config.ev_tap_action,
       image: config.image || "/local/community/Prism-Dashboard/images/prism-energy-home.png",
       show_details: config.show_details !== false,
       // Max values for gauges (in Watts)
@@ -583,6 +736,8 @@ class PrismEnergyHorizontalCard extends HTMLElement {
       custom_pill_1_label: config.custom_pill_1_label || "",
       custom_pill_1_color: config.custom_pill_1_color || [34, 211, 238],
       custom_pill_1_show_label: config.custom_pill_1_show_label !== false,
+      custom_pill_1_is_consumer: config.custom_pill_1_is_consumer || false,
+      custom_pill_1_tap_action: config.custom_pill_1_tap_action,
       custom_pill_1_top: config.custom_pill_1_top ?? 85,
       custom_pill_1_left: config.custom_pill_1_left ?? 35,
       custom_pill_1_scale: config.custom_pill_1_scale ?? 1.0,
@@ -591,6 +746,8 @@ class PrismEnergyHorizontalCard extends HTMLElement {
       custom_pill_2_label: config.custom_pill_2_label || "",
       custom_pill_2_color: config.custom_pill_2_color || [96, 165, 250],
       custom_pill_2_show_label: config.custom_pill_2_show_label !== false,
+      custom_pill_2_is_consumer: config.custom_pill_2_is_consumer || false,
+      custom_pill_2_tap_action: config.custom_pill_2_tap_action,
       custom_pill_2_top: config.custom_pill_2_top ?? 85,
       custom_pill_2_left: config.custom_pill_2_left ?? 50,
       custom_pill_2_scale: config.custom_pill_2_scale ?? 1.0,
@@ -599,6 +756,8 @@ class PrismEnergyHorizontalCard extends HTMLElement {
       custom_pill_3_label: config.custom_pill_3_label || "",
       custom_pill_3_color: config.custom_pill_3_color || [74, 222, 128],
       custom_pill_3_show_label: config.custom_pill_3_show_label !== false,
+      custom_pill_3_is_consumer: config.custom_pill_3_is_consumer || false,
+      custom_pill_3_tap_action: config.custom_pill_3_tap_action,
       custom_pill_3_top: config.custom_pill_3_top ?? 85,
       custom_pill_3_left: config.custom_pill_3_left ?? 65,
       custom_pill_3_scale: config.custom_pill_3_scale ?? 1.0
@@ -687,11 +846,12 @@ class PrismEnergyHorizontalCard extends HTMLElement {
       this._updateElement('.pill-battery .pill-val', `${Math.round(batterySoc)}%`);
     }
     
-    // Update pill labels dynamically
-    this._updateElement('.pill-solar .pill-label', isSolarActive ? this._t('production') : this._t('inactive'));
-    this._updateElement('.pill-grid .pill-label', isGridExport ? this._t('export') : isGridImport ? this._t('import') : this._t('neutral'));
+    // Update pill labels dynamically (custom label overrides status text)
+    this._updateElement('.pill-solar .pill-label', this._config.solar_label || (isSolarActive ? this._t('production') : this._t('inactive')));
+    this._updateElement('.pill-grid .pill-label', this._config.grid_label || (isGridExport ? this._t('export') : isGridImport ? this._t('import') : this._t('neutral')));
+    this._updateElement('.pill-home .pill-label', this._config.home_label || this._t('consumption'));
     if (hasBattery) {
-      this._updateElement('.pill-battery .pill-label', isBatteryCharging ? this._t('charging') : isBatteryDischarging ? this._t('discharging') : this._t('standby'));
+      this._updateElement('.pill-battery .pill-label', this._config.battery_label || (isBatteryCharging ? this._t('charging') : isBatteryDischarging ? this._t('discharging') : this._t('standby')));
     }
     
     // Update pill icon classes (active/inactive states)
@@ -746,14 +906,66 @@ class PrismEnergyHorizontalCard extends HTMLElement {
     for (let i = 1; i <= 3; i++) {
       const entity = this._config[`custom_pill_${i}_entity`];
       if (entity) {
-        const stateObj = this._hass.states[entity];
-        if (stateObj) {
-          const value = stateObj.state;
-          const unit = stateObj.attributes?.unit_of_measurement || '';
-          this._updateElement(`.pill-custom-${i} .pill-val`, `${value}${unit ? ' ' + unit : ''}`);
+        if (this._config[`custom_pill_${i}_is_consumer`]) {
+          const power = this._getStateInWatts(entity, 0);
+          this._updateElement(`.pill-custom-${i} .pill-val`, this._formatPower(power));
+        } else {
+          const stateObj = this._hass.states[entity];
+          if (stateObj) {
+            const value = stateObj.state;
+            const unit = stateObj.attributes?.unit_of_measurement || '';
+            this._updateElement(`.pill-custom-${i} .pill-val`, `${value}${unit ? ' ' + unit : ''}`);
+          }
         }
       }
     }
+  }
+
+  // Get active consumers (EV + custom pills flagged as consumers)
+  _getConsumers() {
+    const consumers = [];
+    const colors = {
+      solar: '#F59E0B',
+      grid: '#3B82F6',
+      battery: '#10B981',
+      home: '#8B5CF6',
+      ev: '#EC4899'
+    };
+
+    if (this._config.ev_power) {
+      const power = this._getStateInWatts(this._config.ev_power, 0);
+      consumers.push({
+        id: 'ev',
+        entity: this._config.ev_power,
+        label: this._config.ev_label || 'E-Auto',
+        power,
+        active: power > 50,
+        color: colors.ev,
+        flowClass: 'flow-home-ev'
+      });
+    }
+
+    for (let i = 1; i <= 3; i++) {
+      const entity = this._config[`custom_pill_${i}_entity`];
+      if (!entity || !this._config[`custom_pill_${i}_is_consumer`]) continue;
+      const power = this._getStateInWatts(entity, 0);
+      const colorConfig = this._normalizeColor(this._config[`custom_pill_${i}_color`]);
+      const colorStr = `rgb(${colorConfig.r}, ${colorConfig.g}, ${colorConfig.b})`;
+      consumers.push({
+        id: `custom-${i}`,
+        entity,
+        label: this._config[`custom_pill_${i}_label`] || `Consumer ${i}`,
+        power,
+        active: power > 50,
+        color: colorStr,
+        icon: this._config[`custom_pill_${i}_icon`] || 'mdi:flash',
+        flowClass: `flow-home-custom-${i}`,
+        top: this._config[`custom_pill_${i}_top`] ?? 85,
+        left: this._config[`custom_pill_${i}_left`] ?? (35 + (i - 1) * 15)
+      });
+    }
+
+    return consumers;
   }
 
   // Get Custom Pill value with unit
@@ -795,6 +1007,7 @@ class PrismEnergyHorizontalCard extends HTMLElement {
       const label = this._config[`custom_pill_${i}_label`] || '';
       const colorConfig = this._config[`custom_pill_${i}_color`];
       const showLabel = this._config[`custom_pill_${i}_show_label`] !== false;
+      const isConsumer = !!this._config[`custom_pill_${i}_is_consumer`];
       const top = this._config[`custom_pill_${i}_top`] ?? 85;
       const left = this._config[`custom_pill_${i}_left`] ?? (35 + (i - 1) * 15);
       const scale = this._config[`custom_pill_${i}_scale`] ?? 1.0;
@@ -803,12 +1016,17 @@ class PrismEnergyHorizontalCard extends HTMLElement {
       const color = this._normalizeColor(colorConfig);
       const colorStr = `${color.r}, ${color.g}, ${color.b}`;
       
-      // Get entity value
-      const { value, unit } = this._getCustomPillValue(entity);
-      const displayValue = value + (unit ? ' ' + unit : '');
+      // Get entity value - consumers use power formatting
+      let displayValue;
+      if (isConsumer) {
+        displayValue = this._formatPower(this._getStateInWatts(entity, 0));
+      } else {
+        const { value, unit } = this._getCustomPillValue(entity);
+        displayValue = value + (unit ? ' ' + unit : '');
+      }
       
       html += `
-              <div class="pill pill-custom-${i}" style="top: ${top}%; left: ${left}%; --pill-scale: ${scale};" data-entity="${entity}">
+              <div class="pill pill-custom-${i}" style="top: ${top}%; left: ${left}%; --pill-scale: ${scale};" data-entity="${entity}" data-pill-key="custom_pill_${i}">
                 <div class="pill-icon" style="background: rgba(${colorStr}, 0.15); box-shadow: 0 0 10px rgba(${colorStr}, 0.3);">
                   <ha-icon icon="${icon}" style="color: rgb(${colorStr});"></ha-icon>
                 </div>
@@ -836,16 +1054,21 @@ class PrismEnergyHorizontalCard extends HTMLElement {
     const gridPower = this._getStateInWatts(this._config.grid_power, 0);
     const batterySoc = this._getState(this._config.battery_soc, 0); // SOC is percentage, not power
     const homeConsumption = this._getStateInWatts(this._config.home_consumption, 0);
+    // Only custom consumers affect gauge total (EV already has its own section; keep legacy gauge behavior)
+    const customConsumerPower = this._getConsumers()
+      .filter(c => c.id !== 'ev' && c.active)
+      .reduce((sum, c) => sum + c.power, 0);
+    const totalConsumption = homeConsumption + customConsumerPower;
 
     // Update inlet gauge arcs
     this._updateGaugeArc('solar-gauge-arc', solarPower / this._config.max_solar_power);
     this._updateGaugeArc('grid-gauge-arc', Math.abs(gridPower) / this._config.max_grid_power);
-    this._updateGaugeArc('consumption-gauge-arc', homeConsumption / this._config.max_consumption);
+    this._updateGaugeArc('consumption-gauge-arc', totalConsumption / this._config.max_consumption);
 
     // Update inlet gauge values
     this._updateElement('.inlet-gauge-solar .inlet-value', this._formatPower(solarPower));
     this._updateElement('.inlet-gauge-grid .inlet-value', this._formatPower(gridPower));
-    this._updateElement('.inlet-gauge-consumption .inlet-value', this._formatPower(homeConsumption));
+    this._updateElement('.inlet-gauge-consumption .inlet-value', this._formatPower(totalConsumption));
     
     // Update battery display
     this._updateElement('.battery-soc', `${Math.round(batterySoc)}%`);
@@ -893,6 +1116,14 @@ class PrismEnergyHorizontalCard extends HTMLElement {
       // EV is treated as sub-load of home - only one line from home to EV
       this._setFlowVisibility('flow-home-ev', isEvCharging);
     }
+
+    // Custom consumer flows
+    for (let i = 1; i <= 3; i++) {
+      if (this._config[`custom_pill_${i}_is_consumer`] && this._config[`custom_pill_${i}_entity`]) {
+        const power = this._getStateInWatts(this._config[`custom_pill_${i}_entity`], 0);
+        this._setFlowVisibility(`flow-home-custom-${i}`, power > 50);
+      }
+    }
   }
 
   _setFlowVisibility(className, visible) {
@@ -939,6 +1170,66 @@ class PrismEnergyHorizontalCard extends HTMLElement {
     this.dispatchEvent(event);
   }
 
+  // Handle configurable tap actions (HA standard)
+  _handleAction(actionConfig, fallbackEntityId) {
+    const action = actionConfig?.action || 'more-info';
+
+    switch (action) {
+      case 'none':
+        return;
+      case 'navigate':
+        if (actionConfig.navigation_path) {
+          history.pushState(null, '', actionConfig.navigation_path);
+          window.dispatchEvent(new CustomEvent('location-changed', {
+            detail: { replace: false },
+            bubbles: true,
+            composed: true
+          }));
+        }
+        return;
+      case 'url':
+        if (actionConfig.url_path) {
+          window.open(actionConfig.url_path, actionConfig.new_tab === false ? '_self' : '_blank');
+        }
+        return;
+      case 'toggle':
+        if (fallbackEntityId && this._hass) {
+          this._hass.callService('homeassistant', 'toggle', { entity_id: fallbackEntityId });
+        }
+        return;
+      case 'call-service':
+      case 'perform-action': {
+        const serviceCall = actionConfig.perform_action || actionConfig.service;
+        if (serviceCall && this._hass) {
+          const [domain, service] = serviceCall.split('.', 2);
+          const data = {
+            ...(actionConfig.data || actionConfig.service_data || {}),
+            ...(actionConfig.target || {})
+          };
+          this._hass.callService(domain, service, data);
+        }
+        return;
+      }
+      case 'more-info':
+      default:
+        this._openMoreInfo(actionConfig?.entity || fallbackEntityId);
+    }
+  }
+
+  // Resolve tap_action config key for a pill element
+  _getTapActionForPill(pill) {
+    const pillKey = pill.getAttribute('data-pill-key');
+    if (pillKey) {
+      return this._config[`${pillKey}_tap_action`];
+    }
+    if (pill.classList.contains('pill-solar')) return this._config.solar_tap_action;
+    if (pill.classList.contains('pill-grid')) return this._config.grid_tap_action;
+    if (pill.classList.contains('pill-home')) return this._config.home_tap_action;
+    if (pill.classList.contains('pill-battery')) return this._config.battery_tap_action;
+    if (pill.classList.contains('pill-ev')) return this._config.ev_tap_action;
+    return undefined;
+  }
+
   // Setup click event listeners for pills
   _setupEventListeners() {
     if (!this.shadowRoot) return;
@@ -949,7 +1240,7 @@ class PrismEnergyHorizontalCard extends HTMLElement {
         e.stopPropagation();
         const entityId = pill.getAttribute('data-entity');
         if (entityId) {
-          this._openMoreInfo(entityId);
+          this._handleAction(this._getTapActionForPill(pill), entityId);
         }
       });
     });
@@ -958,7 +1249,7 @@ class PrismEnergyHorizontalCard extends HTMLElement {
     const houseImg = this.shadowRoot.querySelector('.house-img');
     if (houseImg && this._config.home_consumption) {
       houseImg.addEventListener('click', () => {
-        this._openMoreInfo(this._config.home_consumption);
+        this._handleAction(this._config.home_tap_action, this._config.home_consumption);
       });
     }
 
@@ -1014,9 +1305,10 @@ class PrismEnergyHorizontalCard extends HTMLElement {
 
   // Helper to format power values
   _formatPower(watts) {
+    const d = this._config.decimals ?? 1;
     const absWatts = Math.abs(watts);
     if (absWatts >= 1000) {
-      return `${(absWatts / 1000).toFixed(1)} kW`;
+      return `${(absWatts / 1000).toFixed(d)} kW`;
     }
     return `${Math.round(absWatts)} W`;
   }
@@ -1410,6 +1702,29 @@ class PrismEnergyHorizontalCard extends HTMLElement {
       // EV flow from home (EV is sub-load of home)
       homeToEv: `M ${pillPos.home.x} ${pillPos.home.y} Q ${midPoint(pillPos.home, pillPos.ev).x} ${midPoint(pillPos.home, pillPos.ev).y} ${pillPos.ev.x} ${pillPos.ev.y}`
     };
+
+    // Custom consumer flow paths (home -> custom pill)
+    const consumers = this._getConsumers();
+    // Gauge total: home + custom consumers only (EV has dedicated section; preserve legacy)
+    const customConsumerPower = consumers.filter(c => c.id !== 'ev' && c.active).reduce((sum, c) => sum + c.power, 0);
+    const totalConsumption = homeConsumption + customConsumerPower;
+    const customConsumerFlows = [];
+    for (let i = 1; i <= 3; i++) {
+      if (!this._config[`custom_pill_${i}_is_consumer`] || !this._config[`custom_pill_${i}_entity`]) continue;
+      const target = {
+        x: this._config[`custom_pill_${i}_left`] ?? (35 + (i - 1) * 15),
+        y: this._config[`custom_pill_${i}_top`] ?? 85
+      };
+      const color = this._normalizeColor(this._config[`custom_pill_${i}_color`]);
+      const colorHex = `#${((1 << 24) + (color.r << 16) + (color.g << 8) + color.b).toString(16).slice(1)}`;
+      const power = this._getStateInWatts(this._config[`custom_pill_${i}_entity`], 0);
+      customConsumerFlows.push({
+        path: `M ${pillPos.home.x} ${pillPos.home.y} Q ${midPoint(pillPos.home, target).x} ${midPoint(pillPos.home, target).y} ${target.x} ${target.y}`,
+        color: colorHex,
+        active: power > 50,
+        className: `flow-home-custom-${i}`
+      });
+    }
 
     // Colors
     const colors = {
@@ -2190,6 +2505,9 @@ class PrismEnergyHorizontalCard extends HTMLElement {
 
                 <!-- EV Flow (sub-load of home) -->
                 ${hasEV ? this._renderFlow(paths.homeToEv, colors.ev, isEvCharging, false, 'flow-home-ev') : ''}
+
+                <!-- Custom consumer flows -->
+                ${customConsumerFlows.map(f => this._renderFlow(f.path, f.color, f.active, false, f.className)).join('')}
               </svg>
 
               <!-- Solar Pill (Top - over roof) -->
@@ -2199,7 +2517,7 @@ class PrismEnergyHorizontalCard extends HTMLElement {
                 </div>
                 <div class="pill-content">
                   <span class="pill-val">${this._formatPower(solarPower)}</span>
-                  <span class="pill-label">${isSolarActive ? this._t('production') : this._t('inactive')}</span>
+                  <span class="pill-label">${this._config.solar_label || (isSolarActive ? this._t('production') : this._t('inactive'))}</span>
                 </div>
               </div>
 
@@ -2210,7 +2528,7 @@ class PrismEnergyHorizontalCard extends HTMLElement {
                 </div>
                 <div class="pill-content">
                   <span class="pill-val">${this._formatPower(gridPower)}</span>
-                  <span class="pill-label">${isGridExport ? this._t('export') : isGridImport ? this._t('import') : this._t('neutral')}</span>
+                  <span class="pill-label">${this._config.grid_label || (isGridExport ? this._t('export') : isGridImport ? this._t('import') : this._t('neutral'))}</span>
                 </div>
               </div>
 
@@ -2221,7 +2539,7 @@ class PrismEnergyHorizontalCard extends HTMLElement {
                 </div>
                 <div class="pill-content">
                   <span class="pill-val">${this._formatPower(homeConsumption)}</span>
-                  <span class="pill-label">${this._t('consumption')}</span>
+                  <span class="pill-label">${this._config.home_label || this._t('consumption')}</span>
                 </div>
               </div>
 
@@ -2233,7 +2551,7 @@ class PrismEnergyHorizontalCard extends HTMLElement {
                 </div>
                 <div class="pill-content">
                   <span class="pill-val">${Math.round(batterySoc)}%</span>
-                  <span class="pill-label">${isBatteryCharging ? this._t('charging') : isBatteryDischarging ? this._t('discharging') : this._t('standby')}</span>
+                  <span class="pill-label">${this._config.battery_label || (isBatteryCharging ? this._t('charging') : isBatteryDischarging ? this._t('discharging') : this._t('standby'))}</span>
                 </div>
               </div>
               ` : ''}
@@ -2246,7 +2564,7 @@ class PrismEnergyHorizontalCard extends HTMLElement {
                 </div>
                 <div class="pill-content">
                   <span class="pill-val">${isEvCharging ? this._formatPower(evPower) : this._t('idle')}</span>
-                  <span class="pill-label">EV</span>
+                  <span class="pill-label">${this._config.ev_label || 'EV'}</span>
                 </div>
               </div>
               ` : ''}
@@ -2273,7 +2591,7 @@ class PrismEnergyHorizontalCard extends HTMLElement {
           <!-- Grid & Consumption Row -->
           <div class="gauges-row">
             ${this._renderInletGauge('grid', isGridExport ? this._t('export') : this._t('import'), this._formatPower(gridPower), Math.abs(gridPower) / this._config.max_grid_power, isGridExport ? colors.battery : '#ef4444', this._config.grid_power)}
-            ${this._renderInletGauge('consumption', this._t('consumption'), this._formatPower(homeConsumption), homeConsumption / this._config.max_consumption, colors.home, this._config.home_consumption)}
+            ${this._renderInletGauge('consumption', this._t('consumption'), this._formatPower(totalConsumption), totalConsumption / this._config.max_consumption, colors.home, this._config.home_consumption)}
           </div>
           
           <!-- Battery Section with Icon -->
@@ -2306,7 +2624,7 @@ class PrismEnergyHorizontalCard extends HTMLElement {
           ${hasEV ? `
           <!-- EV Section -->
           <div class="details-section">
-            <div class="details-title">E-Auto</div>
+            <div class="details-title">${this._config.ev_label || 'E-Auto'}</div>
             <div class="battery-display" data-entity="${this._config.ev_power}" style="cursor: pointer;">
               <div class="battery-icon-container">
                 <ha-icon icon="mdi:car-electric" style="--mdc-icon-size: clamp(40px, 4vw, 56px); color: ${isEvCharging ? colors.ev : 'rgba(255,255,255,0.3)'}; filter: ${isEvCharging ? 'drop-shadow(0 0 10px rgba(236, 72, 153, 0.4))' : 'none'};"></ha-icon>
@@ -2323,6 +2641,27 @@ class PrismEnergyHorizontalCard extends HTMLElement {
             </div>
           </div>
           ` : ''}
+
+          ${consumers.filter(c => c.id !== 'ev').map(c => `
+          <!-- Custom Consumer Section -->
+          <div class="details-section">
+            <div class="details-title">${c.label}</div>
+            <div class="battery-display" data-entity="${c.entity}" style="cursor: pointer;">
+              <div class="battery-icon-container">
+                <ha-icon icon="${c.icon || 'mdi:flash'}" style="--mdc-icon-size: clamp(40px, 4vw, 56px); color: ${c.active ? c.color : 'rgba(255,255,255,0.3)'};"></ha-icon>
+              </div>
+              <div class="battery-soc" style="color: ${c.active ? c.color : 'rgba(255,255,255,0.5)'};">${c.active ? this._formatPower(c.power) : '—'}</div>
+              <div class="battery-info">
+                <div class="battery-row">
+                  <span class="battery-label">Status</span>
+                  <span class="battery-value" style="color: ${c.active ? c.color : 'rgba(255,255,255,0.5)'};">
+                    ${c.active ? this._t('consumption') : this._t('idle')}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          `).join('')}
         </div>
         ` : ''}
       </div>
@@ -2392,7 +2731,7 @@ window.customCards.push({
 });
 
 console.info(
-  `%c PRISM-ENERGY-HORIZONTAL %c v1.2.3 %c Weather Performance Optimized `,
+  `%c PRISM-ENERGY-HORIZONTAL %c v1.3.0 %c Labels, Decimals, Consumers & Tap Actions `,
   'background: #F59E0B; color: black; font-weight: bold; padding: 2px 6px; border-radius: 4px 0 0 4px;',
   'background: #1e2024; color: white; font-weight: bold; padding: 2px 6px;',
   'background: #3B82F6; color: white; font-weight: bold; padding: 2px 6px; border-radius: 0 4px 4px 0;'
